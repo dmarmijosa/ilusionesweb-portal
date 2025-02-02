@@ -50,7 +50,7 @@ jobs:
           args: >
             -Dsonar.projectKey=ilusionesweb-portal
             -Dsonar.projectName=Ilusiones Web Portal
-            -Dsonar.host.url=http://<IP-DROPLET-DEVSECOPS>:9000
+            -Dsonar.host.url=http://161.35.175.233:9000
 
       # --- Paso 7: Escaneo de vulnerabilidades con OWASP ZAP ---
       - name: OWASP ZAP Scan
