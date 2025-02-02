@@ -1,0 +1,77 @@
+name: DevSecOps Pipeline
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-test-scan:
+    runs-on: ubuntu-latest
+    steps:
+      # --- Paso 1: Checkout del código ---
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # --- Paso 2: Configurar Node.js ---
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18.x
+
+      # --- Paso 3: Instalar dependencias ---
+      - name: Install dependencies
+        run: |
+          cd frontend && npm install
+          cd backend && npm install
+          cd mobile && npm install
+
+      # --- Paso 4: Ejecutar pruebas unitarias ---
+      - name: Run unit tests
+        run: |
+          cd frontend && npm test -- --watchAll=false
+          cd backend && npm test
+
+      # --- Paso 5: Construir imágenes Docker ---
+      - name: Build Docker images
+        env:
+          DOCKER_REGISTRY: registry.digitalocean.com/ilusionesweb
+        run: |
+          docker build -t $DOCKER_REGISTRY/frontend:${{ github.sha }} ./frontend
+          docker build -t $DOCKER_REGISTRY/backend:${{ github.sha }} ./backend
+
+      # --- Paso 6: Escaneo de seguridad con SonarQube ---
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: http://161.35.175.233:9000  # Reemplaza con tu IP
+
+      # --- Paso 7: Escaneo de vulnerabilidades con OWASP ZAP ---
+      - name: OWASP ZAP Scan
+        uses: zaproxy/action-baseline@v0.6.0
+        with:
+          target: http://142.93.46.223  # URL del entorno de staging
+          rules: https://raw.githubusercontent.com/zaproxy/zap-api-check/master/security/zap.conf
+
+  deploy-prod:
+    needs: build-test-scan
+    runs-on: ubuntu-latest
+    steps:
+      # --- Paso 8: Autenticación en DigitalOcean Registry ---
+      - name: Login to DigitalOcean Registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.digitalocean.com
+          username: ${{ secrets.DO_USERNAME }}
+          password: ${{ secrets.DO_ACCESS_TOKEN }}
+
+      # --- Paso 9: Desplegar en Kubernetes ---
+      - name: Deploy to Kubernetes
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        run: |
+          echo "$KUBE_CONFIG" > kubeconfig.yaml
+          export KUBECONFIG=kubeconfig.yaml
+          kubectl apply -f scripts/frontend-deployment.yaml
+          kubectl apply -f scripts/backend-deployment.yaml
