@@ -36,10 +36,3 @@ chmod +x scripts/deploy.sh
 - Ejecuta ESLint antes de hacer commit:
     ```bash
     npm run lint
-### **Resultado Final**
-- **Frontend**: Aplicación web funcional con datos dinámicos del backend.  
-- **Backend**: API REST sencilla que sirve datos a las apps.  
-- **App Móvil**: Versión móvil conectada al mismo backend.  
-- **Despliegue Automatizado**: Scripts listos para DigitalOcean + Kubernetes.  
-
-**¡Ahora puedes integrar todo al pipeline CI/CD y comenzar con las fases de seguridad!** 🚀
