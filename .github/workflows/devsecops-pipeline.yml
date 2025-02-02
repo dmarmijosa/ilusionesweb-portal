@@ -65,25 +65,23 @@ jobs:
     needs: build-test-scan
     runs-on: ubuntu-latest
     steps:
-      # --- Paso 8: Autenticación en DigitalOcean Registry ---
+      # --- Paso 9: Autenticación en DigitalOcean Registry ---
+      - name: Checkout code
+        uses: actions/checkout@v4
+      # --- Paso 10: Autenticación en DigitalOcean Registry ---
       - name: Login to DigitalOcean Registry
         uses: docker/login-action@v2
         with:
           registry: registry.digitalocean.com
           username: ${{ secrets.DO_USERNAME }}
           password: ${{ secrets.DO_ACCESS_TOKEN }}
-      - name: List repository structure
-        run: |
-            echo "Contenido del directorio raíz:"
-            ls -la .
-            echo "Contenido de la carpeta scripts:"
-            ls -la scripts || echo "No se encontró la carpeta 'scripts'"
-      # --- Paso 9: Desplegar en Kubernetes ---
+
+      # --- Paso 11: Desplegar en Kubernetes ---
       - name: Deploy to Kubernetes
         env:
           KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
           echo "$KUBE_CONFIG" | base64 --decode > kubeconfig.yaml
           export KUBECONFIG=kubeconfig.yaml
-          kubectl apply -f scripts/frontend-deployment.yaml
+          kubectl apply -f scripts/frontend-deployment.yaml 
           kubectl apply -f scripts/backend-deployment.yaml
