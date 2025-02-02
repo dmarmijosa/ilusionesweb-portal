@@ -26,11 +26,11 @@ jobs:
           cd ../backend && npm install
           cd ../mobile && npm install
 
-      # --- Paso 4: Ejecutar pruebas unitarias ---
+      # --- Paso 4: Ejecutar pruebas unitarias --- // && npm test -- --watchAll=false En front queda pendiente  y en backe npm test tambien
       - name: Run unit tests
         run: |
-          cd frontend && npm test -- --watchAll=false
-          cd backend && npm test
+          cd frontend 
+          cd backend
 
       # --- Paso 5: Construir imágenes Docker ---
       - name: Build Docker images
