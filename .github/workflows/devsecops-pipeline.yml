@@ -84,5 +84,5 @@ jobs:
           echo "Ruta del repositorio: $GITHUB_WORKSPACE"
           ls -l $GITHUB_WORKSPACE/scripts/
           
-          kubectl apply -f $GITHUB_WORKSPACE/scripts/frontend-deployment.yaml
+          kubectl apply -f ../scripts/frontend-deployment.yaml
           kubectl apply -f $GITHUB_WORKSPACE/scripts/backend-deployment.yaml
