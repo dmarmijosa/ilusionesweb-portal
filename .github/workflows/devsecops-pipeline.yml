@@ -23,8 +23,8 @@ jobs:
       - name: Install dependencies
         run: |
           cd frontend && npm install
-          cd backend && npm install
-          cd mobile && npm install
+          cd ../backend && npm install
+          cd ../mobile && npm install
 
       # --- Paso 4: Ejecutar pruebas unitarias ---
       - name: Run unit tests
