@@ -45,7 +45,12 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: http://161.35.175.233:9000  # Reemplaza con tu IP
+          SONAR_HOST_URL: http://161.35.175.233:9000  
+        with:
+          args: >
+            -Dsonar.projectKey=ilusionesweb-portal
+            -Dsonar.projectName=Ilusiones Web Portal
+            -Dsonar.host.url=http://<IP-DROPLET-DEVSECOPS>:9000
 
       # --- Paso 7: Escaneo de vulnerabilidades con OWASP ZAP ---
       - name: OWASP ZAP Scan
