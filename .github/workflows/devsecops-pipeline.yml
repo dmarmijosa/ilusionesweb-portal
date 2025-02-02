@@ -82,7 +82,9 @@ jobs:
           export KUBECONFIG=kubeconfig.yaml
           
           echo "Contenido de la carpeta scripts:"          
-          ls -l scripts/         
+          echo "Directorio actual: $(pwd)"
+          echo "Listar todo el contenido:"
+          ls -R   
 
-          kubectl apply -f $GITHUB_WORKSPACE/scripts/frontend-deployment.yaml
-          kubectl apply -f $GITHUB_WORKSPACE/scripts/backend-deployment.yaml
+          kubectl apply -f scripts/frontend-deployment.yaml
+          kubectl apply -f scripts/backend-deployment.yaml
