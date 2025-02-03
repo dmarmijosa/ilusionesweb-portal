@@ -42,15 +42,17 @@ jobs:
           password: ${{ secrets.DO_ACCESS_TOKEN }}
       - name: Build and Push Docker images
         env:
-          DOCKER_REGISTRY: registry.digitalocean.com/ilusionesweb
+          REGISTRY: registry.digitalocean.com
+          NAMESPACE: ilusionesweb  # Debe coincidir EXACTAMENTE con tu namespace
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Construir y empujar frontend
-          docker build -t $DOCKER_REGISTRY/frontend:${{ github.sha }} ./frontend
-          docker push $DOCKER_REGISTRY/frontend:${{ github.sha }}
-              
-          # Construir y empujar backend
-          docker build -t $DOCKER_REGISTRY/backend:${{ github.sha }} ./backend
-          docker push $DOCKER_REGISTRY/backend:${{ github.sha }}
+          # Frontend
+          docker build -t $REGISTRY/$NAMESPACE/frontend:$IMAGE_TAG ./frontend
+          docker push $REGISTRY/$NAMESPACE/frontend:$IMAGE_TAG
+          
+          # Backend
+          docker build -t $REGISTRY/$NAMESPACE/backend:$IMAGE_TAG ./backend
+          docker push $REGISTRY/$NAMESPACE/backend:$IMAGE_TAG
 
       # --- Paso 6: Escaneo de seguridad con SonarQube ---
       - name: SonarQube Scan
