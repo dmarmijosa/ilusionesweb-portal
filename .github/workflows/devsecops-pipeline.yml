@@ -74,12 +74,13 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
         # --- Paso 2: Generar kubecongif.yaml
+        
       - name: Generate kubeconfig
         env:
           K3S_CA_CRT: ${{ secrets.K3S_CA_CRT }}
           K3S_CLIENT_CRT: ${{ secrets.K3S_CLIENT_CRT }}
           K3S_CLIENT_KEY: ${{ secrets.K3S_CLIENT_KEY }}
-          K3S_SERVER: "https://161.35.175.233:6443"  # Reemplaza con la IP de tu droplet
+          K3S_SERVER: "https://161.35.175.233:6443"
         run: |
           mkdir -p ~/.kube
           cat <<EOF > kubeconfig.yaml
@@ -104,30 +105,24 @@ jobs:
               client-key-data: $K3S_CLIENT_KEY
           EOF
           cp kubeconfig.yaml ~/.kube/config
-
-      # --- Paso 8: Autenticación en DigitalOcean Registry ---
+  
       - name: Login to DigitalOcean Registry
         uses: docker/login-action@v2
         with:
           registry: registry.digitalocean.com
           username: ${{ secrets.DO_USERNAME }}
           password: ${{ secrets.DO_ACCESS_TOKEN }}
+  
       - name: Verify cluster access
         run: |
-         kubectl cluster-info
-         kubectl get nodes
-      # --- Paso 9: Desplegar en Kubernetes ---
+          kubectl cluster-info
+          kubectl get nodes
+  
       - name: Deploy to Kubernetes
-        env:
-          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
-          echo "$KUBE_CONFIG" | base64 --decode > kubeconfig.yaml
-          export KUBECONFIG=kubeconfig.yaml
-          # Verificar rutas ABSOLUTAS
-          echo "Ruta del repositorio: $GITHUB_WORKSPACE"
-          ls -l $GITHUB_WORKSPACE/scripts/
-          
-          kubectl apply -f $GITHUB_WORKSPACE/scripts/frontend-deployment.yaml --validate=false
-          kubectl apply -f $GITHUB_WORKSPACE/scripts/backend-deployment.yaml --validate=false
-
+          echo "=== Verificando configuración de Kubernetes ==="
+          kubectl config view
+          echo "=== Aplicando deployments ==="
+          kubectl apply -f $GITHUB_WORKSPACE/scripts/frontend-deployment.yaml
+          kubectl apply -f $GITHUB_WORKSPACE/scripts/backend-deployment.yaml
     
