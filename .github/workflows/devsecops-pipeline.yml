@@ -40,6 +40,11 @@ jobs:
           registry: registry.digitalocean.com
           username: ${{ secrets.DO_USERNAME }}
           password: ${{ secrets.DO_ACCESS_TOKEN }}
+      - name: Test Registry Access
+        run: |
+          docker pull alpine:latest
+          docker tag alpine:latest registry.digitalocean.com/ilusionesweb/test-image:latest
+          docker push registry.digitalocean.com/ilusionesweb/test-image:latest
       - name: Build and Push Docker images
         env:
           REGISTRY: registry.digitalocean.com
