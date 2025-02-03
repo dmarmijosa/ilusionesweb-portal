@@ -79,7 +79,7 @@ jobs:
           K3S_CA_CRT: ${{ secrets.K3S_CA_CRT }}
           K3S_CLIENT_CRT: ${{ secrets.K3S_CLIENT_CRT }}
           K3S_CLIENT_KEY: ${{ secrets.K3S_CLIENT_KEY }}
-          K3S_SERVER: "https://<IP-DEL-DROPLET>:6443"  # Reemplaza con la IP de tu droplet
+          K3S_SERVER: "https://161.35.175.233:6443"  # Reemplaza con la IP de tu droplet
         run: |
           mkdir -p ~/.kube
           cat <<EOF > kubeconfig.yaml
