@@ -33,13 +33,23 @@ jobs:
       #    cd backend
 
       # --- Paso 5: Construir imágenes Docker ---
-      - name: Build Docker images
+
+      - name: Login to DigitalOcean Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: registry.digitalocean.com
+          username: ${{ secrets.DO_USERNAME }}
+          password: ${{ secrets.DO_ACCESS_TOKEN }}
+      - name: Build and Push Docker images
         env:
           DOCKER_REGISTRY: registry.digitalocean.com/ilusionesweb
         run: |
+          # Construir y empujar frontend
           docker build -t $DOCKER_REGISTRY/frontend:${{ github.sha }} ./frontend
-          docker build -t $DOCKER_REGISTRY/backend:${{ github.sha }} ./backend
           docker push $DOCKER_REGISTRY/frontend:${{ github.sha }}
+              
+          # Construir y empujar backend
+          docker build -t $DOCKER_REGISTRY/backend:${{ github.sha }} ./backend
           docker push $DOCKER_REGISTRY/backend:${{ github.sha }}
 
       # --- Paso 6: Escaneo de seguridad con SonarQube ---
