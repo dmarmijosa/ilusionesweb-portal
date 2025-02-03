@@ -39,6 +39,8 @@ jobs:
         run: |
           docker build -t $DOCKER_REGISTRY/frontend:${{ github.sha }} ./frontend
           docker build -t $DOCKER_REGISTRY/backend:${{ github.sha }} ./backend
+          docker push $DOCKER_REGISTRY/frontend:${{ github.sha }}
+          docker push $DOCKER_REGISTRY/backend:${{ github.sha }}
 
       # --- Paso 6: Escaneo de seguridad con SonarQube ---
       - name: SonarQube Scan
@@ -83,28 +85,10 @@ jobs:
           K3S_SERVER: "https://161.35.175.233:6443"
         run: |
           mkdir -p ~/.kube
-          cat <<EOF > kubeconfig.yaml
-          apiVersion: v1
-          clusters:
-          - cluster:
-              certificate-authority-data: $K3S_CA_CRT
-              server: $K3S_SERVER
-            name: k3s-cluster
-          contexts:
-          - context:
-              cluster: k3s-cluster
-              user: admin
-            name: default
-          current-context: default
-          kind: Config
-          preferences: {}
-          users:
-          - name: admin
-            user:
-              client-certificate-data: $K3S_CLIENT_CRT
-              client-key-data: $K3S_CLIENT_KEY
-          EOF
-          cp kubeconfig.yaml ~/.kube/config
+          kubectl config set-cluster k3s --server=https://161.35.175.233:6443 --certificate-authority=<(echo "$K3S_CA_CRT" | base64 -d)
+          kubectl config set-credentials admin --client-certificate=<(echo "$K3S_CLIENT_CRT" | base64 -d) --client-key=<(echo "$K3S_CLIENT_KEY" | base64 -d)
+          kubectl config set-context default --cluster=k3s --user=admin
+          kubectl config use-context default
   
       - name: Login to DigitalOcean Registry
         uses: docker/login-action@v2
@@ -112,17 +96,12 @@ jobs:
           registry: registry.digitalocean.com
           username: ${{ secrets.DO_USERNAME }}
           password: ${{ secrets.DO_ACCESS_TOKEN }}
-  
-      - name: Verify cluster access
-        run: |
-          kubectl cluster-info
-          kubectl get nodes
-  
+
       - name: Deploy to Kubernetes
         run: |
-          echo "=== Verificando configuración de Kubernetes ==="
-          kubectl config view
-          echo "=== Aplicando deployments ==="
-          kubectl apply -f $GITHUB_WORKSPACE/scripts/frontend-deployment.yaml
-          kubectl apply -f $GITHUB_WORKSPACE/scripts/backend-deployment.yaml
+          export GITHUB_SHA=${{ github.sha }}
+          envsubst < scripts/frontend-deployment.yaml | kubectl apply -f -
+          envsubst < scripts/backend-deployment.yaml | kubectl apply -f -
+          kubectl rollout status deployment/frontend --timeout=90s
+          kubectl rollout status deployment/backend --timeout=90s
     
