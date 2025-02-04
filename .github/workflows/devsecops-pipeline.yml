@@ -49,7 +49,7 @@ jobs:
           docker build -t registry.digitalocean.com/ilusionesweb/app:${{ github.sha }}-frontend ./frontend
           docker push registry.digitalocean.com/ilusionesweb/app:${{ github.sha }}-frontend
           docker build -t registry.digitalocean.com/ilusionesweb/app:${{ github.sha }}-backend ./backend
-          docker push registry.digitalocean.com/ilusionesweb/app:${{ github.sha }}-backend<
+          docker push registry.digitalocean.com/ilusionesweb/app:${{ github.sha }}-backend
 
       # --- Paso 6: Escaneo de seguridad con SonarQube ---
       - name: SonarQube Scan
