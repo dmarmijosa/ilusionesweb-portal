@@ -17,6 +17,12 @@ spec:
           image: "registry.digitalocean.com/ilusionesweb/app:${GITHUB_SHA}-frontend"
           ports:
             - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /  
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
       nodeSelector:
         env: dev
 ---
