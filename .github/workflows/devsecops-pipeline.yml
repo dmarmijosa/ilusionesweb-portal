@@ -40,24 +40,17 @@ jobs:
           registry: registry.digitalocean.com
           username: ${{ secrets.DO_USERNAME }}
           password: ${{ secrets.DO_ACCESS_TOKEN }}
-      - name: Test Registry Access
-        run: |
-          docker pull alpine:latest
-          docker tag alpine:latest registry.digitalocean.com/ilusionesweb/test-image:latest
-          docker push registry.digitalocean.com/ilusionesweb/test-image:latest
       - name: Build and Push Docker images
         env:
           REGISTRY: registry.digitalocean.com
           NAMESPACE: ilusionesweb  # Debe coincidir EXACTAMENTE con tu namespace
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          # Frontend
-          docker build -t $REGISTRY/$NAMESPACE/frontend:$IMAGE_TAG ./frontend
-          docker push $REGISTRY/$NAMESPACE/frontend:$IMAGE_TAG
-          
-          # Backend
-          docker build -t $REGISTRY/$NAMESPACE/backend:$IMAGE_TAG ./backend
-          docker push $REGISTRY/$NAMESPACE/backend:$IMAGE_TAG
+          docker build -t registry.digitalocean.com/ilusionesweb/app:${{ github.sha }}-frontend ./frontend
+          docker push registry.digitalocean.com/ilusionesweb/app:${{ github.sha }}-frontend
+    
+          docker build -t registry.digitalocean.com/ilusionesweb/app:${{ github.sha }}-backend ./backend
+          docker push registry.digitalocean.com/ilusionesweb/app:${{ github.sha }}-backend<
 
       # --- Paso 6: Escaneo de seguridad con SonarQube ---
       - name: SonarQube Scan

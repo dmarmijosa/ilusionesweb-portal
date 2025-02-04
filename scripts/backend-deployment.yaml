@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: registry.digitalocean.com/ilusionesweb/backend:${GITHUB_SHA}
+          image: image: registry.digitalocean.com/ilusionesweb/app:{{ CURRENT_COMMIT_SHA }}-backend
           ports:
             - containerPort: 3001
 ---
