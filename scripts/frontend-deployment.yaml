@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: registry.digitalocean.com/ilusionesweb/app:{{ CURRENT_COMMIT_SHA }}-frontend
+          image: "registry.digitalocean.com/ilusionesweb/app:${GITHUB_SHA}-frontend"
           ports:
             - containerPort: 80
       nodeSelector:
