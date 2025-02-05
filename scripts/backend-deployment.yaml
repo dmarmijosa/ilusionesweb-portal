@@ -17,6 +17,8 @@ spec:
           image: "registry.digitalocean.com/ilusionesweb/app:backend-${GITHUB_SHA}"
           ports:
             - containerPort: 3001
+      imagePullSecrets:
+        - name: regcred
 ---
 apiVersion: v1
 kind: Service
