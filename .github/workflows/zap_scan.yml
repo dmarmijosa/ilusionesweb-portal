@@ -1,0 +1,38 @@
+name: OWASP ZAP Security Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  zap_scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      # --- Paso 1: Checkout del código ---
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # --- Paso 2: Escaneo OWASP ZAP ---
+      - name: Run OWASP ZAP Full Scan
+        uses: zaproxy/action-full-scan@v0.6.0
+        with:
+          target: "http://${{ secrets.FRONTEND_IP }}"
+          docker_name: "ghcr.io/zaproxy/zaproxy:stable"
+          rules_file_name: "zap.conf"
+          cmd_options: "-config scan.scanOnlyInScope=true"
+
+      # --- Paso 3: Publicar reporte en los logs ---
+      - name: Show OWASP ZAP Report
+        run: cat zap.out
+
+      # --- Paso 4: Subir reporte como artefacto a GitHub ---
+      - name: Upload OWASP ZAP Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-report
+          path: zap.out
