@@ -36,10 +36,10 @@ jobs:
           IMAGE_TAG: ${{ github.sha }}
         run: |
           echo "${{ secrets.DO_ACCESS_TOKEN }}" | docker login registry.digitalocean.com -u oauth2 --password-stdin
-          docker build -t $REGISTRY/$NAMESPACE/frontend:$IMAGE_TAG ./frontend
-          docker push $REGISTRY/$NAMESPACE/frontend:$IMAGE_TAG
-          docker build -t $REGISTRY/$NAMESPACE/backend:$IMAGE_TAG ./backend
-          docker push $REGISTRY/$NAMESPACE/backend:$IMAGE_TAG
+          docker build -t $REGISTRY/$NAMESPACE/app:frontend-$IMAGE_TAG ./frontend
+          docker push $REGISTRY/$NAMESPACE/app:frontend-$IMAGE_TAG
+          docker build -t $REGISTRY/$NAMESPACE/app:backend-$IMAGE_TAG ./backend
+          docker push $REGISTRY/$NAMESPACE/app:backend-$IMAGE_TAG
 
   deploy:
     needs: build-test-scan
