@@ -24,7 +24,7 @@ jobs:
             -v $(pwd):/zap/wrk/:rw \
             -t ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
             -t "http://${{ secrets.FRONTEND_IP }}" \
-            -r zap-report.html || true
+            -r /zap/wrk/zap-report.html || true
 
       # --- Paso 3: Publicar reporte en los logs ---
       - name: Show OWASP ZAP Report
@@ -35,4 +35,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: zap-report
-          path: zap-report.html
+          path: zap/wrk/zap-report.html
