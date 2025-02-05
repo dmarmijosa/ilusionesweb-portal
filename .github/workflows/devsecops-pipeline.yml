@@ -1,126 +1,65 @@
 name: DevSecOps Pipeline
+
 on:
   push:
-    branches: [main]
-  pull_request:
     branches: [main]
 
 jobs:
   build-test-scan:
     runs-on: ubuntu-latest
     steps:
-      # --- Paso 1: Checkout del código ---
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # --- Paso 2: Configurar Node.js ---
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18.x
 
-      # --- Paso 3: Instalar dependencias ---
       - name: Install dependencies
         run: |
           cd frontend && npm install
           cd ../backend && npm install
-          cd ../mobile && npm install
 
-      # --- Paso 4: Ejecutar pruebas unitarias ---  // && npm test -- --watchAll=false En front queda pendiente  y en backe npm test tambien
-      #- name: Run unit tests
-      #  run: |
-      #    cd frontend 
-      #    cd backend
-
-      # --- Paso 5: Construir imágenes Docker ---
-
-      - name: Login to DigitalOcean Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: registry.digitalocean.com
-          username: ${{ secrets.DO_USERNAME }}
-          password: ${{ secrets.DO_ACCESS_TOKEN }}
-      - name: Build and Push Docker images
-        env:
-          REGISTRY: registry.digitalocean.com
-          NAMESPACE: ilusionesweb  # Debe coincidir EXACTAMENTE con tu namespace
-          IMAGE_TAG: ${{ github.sha }}
-        run: |
-          docker build -t registry.digitalocean.com/ilusionesweb/app:${{ github.sha }}-frontend ./frontend
-          docker push registry.digitalocean.com/ilusionesweb/app:${{ github.sha }}-frontend
-          docker build -t registry.digitalocean.com/ilusionesweb/app:${{ github.sha }}-backend ./backend
-          docker push registry.digitalocean.com/ilusionesweb/app:${{ github.sha }}-backend
-
-      # --- Paso 6: Escaneo de seguridad con SonarQube ---
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: http://161.35.175.233:9000  
+          SONAR_HOST_URL: ${{ secrets.SONARQUBE_URL }}
         with:
-          args: >
-            -Dsonar.projectKey=ilusionesweb-portal
-            -Dsonar.projectName="Ilusiones Web Portal"
-            -Dsonar.host.url=http://161.35.175.233:9000
+          args: "-Dsonar.projectKey=ilusionesweb"
 
-      # --- Paso 7: Escaneo de vulnerabilidades con OWASP ZAP  ---
-      - name: OWASP ZAP Scan
-        uses: zaproxy/action-full-scan@v0.6.0
-        with:
-          target: http://142.93.46.223
-          docker_name: ghcr.io/zaproxy/zaproxy:stable
-          rules_file_name: zap.conf
-          cmd_options: "-config scan.scanOnlyInScope=true"
-      - name: Debug - Listar directorio raíz
-        run: ls -l
-    
-      - name: Debug - Listar carpeta scripts
-        run: ls -l scripts/
+      - name: Build and Push Docker images
+        env:
+          REGISTRY: registry.digitalocean.com
+          NAMESPACE: ilusionesweb
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          echo "${{ secrets.DO_ACCESS_TOKEN }}" | docker login registry.digitalocean.com -u oauth2 --password-stdin
+          docker build -t $REGISTRY/$NAMESPACE/frontend:$IMAGE_TAG ./frontend
+          docker push $REGISTRY/$NAMESPACE/frontend:$IMAGE_TAG
+          docker build -t $REGISTRY/$NAMESPACE/backend:$IMAGE_TAG ./backend
+          docker push $REGISTRY/$NAMESPACE/backend:$IMAGE_TAG
 
-  deploy-prod:
+  deploy:
     needs: build-test-scan
     runs-on: ubuntu-latest
     steps:
-        # --- Paso 1: Checkout del código ---
       - name: Checkout code
         uses: actions/checkout@v4
-        # --- Paso 2: Generar kubecongif.yaml
-        
-      - name: Generate kubeconfig
+
+      - name: Set up kubectl
         env:
-          K3S_CA_CRT: ${{ secrets.K3S_CA_CRT }}
-          K3S_CLIENT_CRT: ${{ secrets.K3S_CLIENT_CRT }}
-          K3S_CLIENT_KEY: ${{ secrets.K3S_CLIENT_KEY }}
-          K3S_SERVER: "https://161.35.175.233:6443"
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
         run: |
           mkdir -p ~/.kube
-          # Decodificar y guardar certificados en archivos
-          echo "$K3S_CA_CRT" | base64 -d > ca.crt
-          echo "$K3S_CLIENT_CRT" | base64 -d > client.crt
-          echo "$K3S_CLIENT_KEY" | base64 -d > client.key
-      
-          # Configurar cluster con archivos físicos
-          kubectl config set-cluster k3s --server="$K3S_SERVER" --certificate-authority=ca.crt
-          kubectl config set-credentials admin --client-certificate=client.crt --client-key=client.key
-          kubectl config set-context default --cluster=k3s --user=admin
-          kubectl config use-context default
-      
-          # Opcional: Verificar la configuración
-          kubectl config view
+          echo "$KUBE_CONFIG" | base64 -d > ~/.kube/config
           kubectl get nodes
-      - name: Login to DigitalOcean Registry
-        uses: docker/login-action@v2
-        with:
-          registry: registry.digitalocean.com
-          username: ${{ secrets.DO_USERNAME }}
-          password: ${{ secrets.DO_ACCESS_TOKEN }}
 
       - name: Deploy to Kubernetes
         run: |
           export GITHUB_SHA=${{ github.sha }}
           envsubst < scripts/frontend-deployment.yaml | kubectl apply -f -
           envsubst < scripts/backend-deployment.yaml | kubectl apply -f -
-          kubectl rollout status deployment/frontend --timeout=180s || true
-          kubectl rollout status deployment/backend --timeout=180s || true
-          kubectl logs -l app=frontend --prefix
-    
+          kubectl rollout status deployment/frontend --timeout=180s
+          kubectl rollout status deployment/backend --timeout=180s
