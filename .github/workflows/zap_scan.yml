@@ -32,7 +32,7 @@ jobs:
 
       # --- Paso 4: Subir reporte como artefacto a GitHub ---
       - name: Upload OWASP ZAP Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: zap-report
           path: zap.out
