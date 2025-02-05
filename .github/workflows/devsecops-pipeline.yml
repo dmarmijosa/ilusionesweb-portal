@@ -54,6 +54,7 @@ jobs:
         run: |
           mkdir -p ~/.kube
           echo "$KUBE_CONFIG" | base64 -d > ~/.kube/config
+          kubectl config view
           kubectl get nodes
 
       - name: Deploy to Kubernetes
