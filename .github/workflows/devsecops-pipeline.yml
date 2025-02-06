@@ -62,8 +62,5 @@ jobs:
           export GITHUB_SHA=${{ github.sha }}
           envsubst < scripts/frontend-deployment.yaml | kubectl apply -f -
           envsubst < scripts/backend-deployment.yaml | kubectl apply -f -
-          kubectl apply -f scripts/prometheus-rbac.yaml
-          kubectl apply -f scripts/prometheus-token.yaml
-          kubectl apply -f scripts/prometheus-deployment.yaml
           kubectl rollout status deployment/frontend --timeout=180s
           kubectl rollout status deployment/backend --timeout=180s
