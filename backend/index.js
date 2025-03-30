@@ -6,7 +6,7 @@ const PORT = 3001;
 app.use(cors());
 
 app.get('/api/data', (req, res) => {
-  res.json({ data: `¡Hola desde el backend express ! ${new Date()}` });
+  res.json({ data: `¡Hola desde el backend express V1 ! ${new Date()}` });
 });
 
 app.listen(PORT, () => {
