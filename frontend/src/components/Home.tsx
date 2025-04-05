@@ -10,7 +10,7 @@ const Home = () => {
 
   return (
     <div>
-      <h1>Bienvenido a Ilusiones Web</h1>
+      <h1>Bienvenido a Ilusiones Web Perú</h1>
       <p>Datos del backend: {data}</p>
     </div>
   );

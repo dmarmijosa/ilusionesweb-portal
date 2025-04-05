@@ -6,7 +6,7 @@ const PORT = 3001;
 app.use(cors());
 
 app.get('/api/data', (req, res) => {
-  res.json({ data: '¡Hola desde el backend Ilusiones Web Perú!' });
+  res.json({ data: '¡Hola desde el Backend Ilusiones Web Perú!' });
 });
 
 app.listen(PORT, () => {
